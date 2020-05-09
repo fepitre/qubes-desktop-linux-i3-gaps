@@ -1,0 +1,69 @@
+From 52d278c51bc9b8f76ec5aae50db9ae230286f57b Mon Sep 17 00:00:00 2001
+From: Michael Stapelberg <michael@stapelberg.de>
+Date: Thu, 30 Apr 2020 18:16:54 +0200
+Subject: [PATCH] Fix #ifndef statements: HAVE_ variables are all upper case
+
+The autoconf manual states:
+
+   define HAVE_function (in all capitals) if it is available
+
+https://www.gnu.org/savannah-checkouts/gnu/autoconf/manual/autoconf-2.69/html_node/Generic-Functions.html#Generic-Functions
+
+Thanks to @sur5r for the report
+---
+ include/libi3.h | 4 ++--
+ libi3/mkdirp.c  | 2 +-
+ libi3/strndup.c | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/include/libi3.h b/include/libi3.h
+index 15d1bc76..5c3b5539 100644
+--- a/include/libi3.h
++++ b/include/libi3.h
+@@ -341,7 +341,7 @@ gchar *g_utf8_make_valid(const gchar *str, gssize len);
+  */
+ uint32_t get_colorpixel(const char *hex) __attribute__((const));
+ 
+-#ifndef HAVE_strndup
++#ifndef HAVE_STRNDUP
+ /**
+  * Taken from FreeBSD
+  * Returns a pointer to a new string which is a duplicate of the
+@@ -526,7 +526,7 @@ char *resolve_tilde(const char *path);
+  */
+ char *get_config_path(const char *override_configpath, bool use_system_paths);
+ 
+-#ifndef HAVE_mkdirp
++#ifndef HAVE_MKDIRP
+ /**
+  * Emulates mkdir -p (creates any missing folders)
+  *
+diff --git a/libi3/mkdirp.c b/libi3/mkdirp.c
+index 35a30475..d29bb95b 100644
+--- a/libi3/mkdirp.c
++++ b/libi3/mkdirp.c
+@@ -12,7 +12,7 @@
+ #include <string.h>
+ #include <sys/stat.h>
+ 
+-#ifndef HAVE_mkdirp
++#ifndef HAVE_MKDIRP
+ /*
+  * Emulates mkdir -p (creates any missing folders)
+  *
+diff --git a/libi3/strndup.c b/libi3/strndup.c
+index e215a76f..05721a62 100644
+--- a/libi3/strndup.c
++++ b/libi3/strndup.c
+@@ -10,7 +10,7 @@
+ #include <sys/types.h>
+ #include <string.h>
+ 
+-#ifndef HAVE_strndup
++#ifndef HAVE_STRNDUP
+ /*
+  * Taken from FreeBSD
+  * Returns a pointer to a new string which is a duplicate of the
+-- 
+2.25.4
+
