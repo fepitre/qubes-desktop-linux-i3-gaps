@@ -1,0 +1,179 @@
+Name:           i3
+Version:        @VERSION@
+Release:        @REL@%{?dist}
+Epoch:          1000
+Summary:        Improved tiling window manager
+License:        BSD
+URL:            https://i3wm.org
+Source0:        %{URL}/downloads/%{name}-%{version}.tar.bz2
+Source1:        %{name}-logo.svg
+Patch0:         0001-Show-qubes-domain-in-configurable-colored-borders.patch
+
+BuildRequires:  gcc
+BuildRequires:  autoconf
+BuildRequires:  automake
+# from configure.ac and DEPENDS (mostly versions)
+BuildRequires:  pkgconfig >= 0.25
+# no pkg-config for libev
+BuildRequires:  libev-devel >= 4.0
+BuildRequires:  pkgconfig(libstartup-notification-1.0)
+BuildRequires:  pkgconfig(xcb) >= 1.1.93
+BuildRequires:  pkgconfig(xcb-xkb)
+BuildRequires:  pkgconfig(xcb-xinerama)
+BuildRequires:  pkgconfig(xcb-randr)
+BuildRequires:  pkgconfig(xcb-shape)
+BuildRequires:  pkgconfig(xcb-event)
+BuildRequires:  pkgconfig(xcb-util)
+BuildRequires:  pkgconfig(xcb-cursor)
+BuildRequires:  pkgconfig(xcb-keysyms)
+BuildRequires:  pkgconfig(xcb-icccm)
+BuildRequires:  pkgconfig(xcb-xrm)
+BuildRequires:  pkgconfig(xkbcommon) >= 0.4.0
+BuildRequires:  pkgconfig(xkbcommon-x11) >= 0.4.0
+BuildRequires:  pkgconfig(yajl) >= 2.0.1
+BuildRequires:  pkgconfig(libpcre) >= 8.10
+BuildRequires:  pkgconfig(cairo) >= 1.14.4
+BuildRequires:  pkgconfig(pangocairo) >= 1.30.0
+BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(gobject-2.0)
+# man pages
+BuildRequires:  asciidoc >= 8.3.0
+BuildRequires:  xmlto >= 0.0.23
+
+# TODO: Testsuites
+# BuildRequires:  perl(ExtUtils::MakeMaker)
+#BuildRequires:  perl(strict)
+#BuildRequires:  perl(warnings)
+#BuildRequires:  perl(Pod::Usage)
+#BuildRequires:  perl(Cwd)
+#BuildRequires:  perl(File::Temp)
+#BuildRequires:  perl(Getopt::Long)
+#BuildRequires:  perl(POSIX)
+#BuildRequires:  perl(TAP::Harness)
+#BuildRequires:  perl(TAP::Parser)
+#BuildRequires:  perl(TAP::Parser::Aggregator)
+#BuildRequires:  perl(Time::HiRes)
+#BuildRequires:  perl(IO::Handle)
+#BuildRequires:  perl(AnyEvent::Util)
+#BuildRequires:  perl(AnyEvent::Handle)
+#BuildRequires:  perl(AnyEvent::I3)
+#BuildRequires:  perl(X11::XCB::Connection)
+#BuildRequires:  perl(Carp)
+
+BuildRequires:  perl-generators
+BuildRequires:  perl(Pod::Simple)
+%ifnarch s390 s390x
+BuildRequires:  xorg-x11-drv-dummy
+%endif
+
+Requires:       qubes-desktop-linux-common
+Requires:       dmenu
+Requires:       dzen2
+Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
+%{!?rhel:Recommends:     rxvt-unicode}
+%{!?rhel:Recommends:     xorg-x11-apps}
+Requires:       xorg-x11-fonts-misc
+Recommends:     pulseaudio-utils
+# for i3-save-tree
+Requires:       perl(AnyEvent::I3) >= 0.12
+
+Recommends:     dmenu
+Recommends:     i3status
+Recommends:     i3lock
+
+%description
+Key features of i3 are correct implementation of XrandR, horizontal and vertical
+columns (think of a table) in tiling. Also, special focus is on writing clean,
+readable and well documented code. i3 uses xcb for asynchronous communication
+with X11, and has several measures to be very fast.
+
+Please be aware that i3 is primarily targeted at advanced users and developers.
+
+%package        doc
+Summary:        Documentation for %{name}
+BuildArch:      noarch
+Requires:       %{name} = %{epoch}:%{version}-%{release}
+
+%description    doc
+Asciidoc generated documentation for %{name}.
+
+%package        devel
+Summary:        Development files for %{name}
+Requires:       %{name} = %{epoch}:%{version}-%{release}
+
+%description    devel
+Header files for %{name}.
+
+%package        devel-doc
+Summary:        Documentation for the development files of %{name}
+BuildRequires:  doxygen
+BuildArch:      noarch
+Requires:       %{name} = %{epoch}:%{version}-%{release}
+
+%description    devel-doc
+Doxygen generated documentations for %{name}.
+
+%prep
+%autosetup -p1
+
+# Drop /usr/bin/env lines in those which will be installed to %%_bindir.
+find . -maxdepth 1 -type f -name "i3*" -exec sed -i -e '1s;^#!/usr/bin/env perl;#!/usr/bin/perl;' {} + -print
+
+
+%build
+mkdir build && pushd build
+ln -s ../configure configure
+%configure
+%make_build
+popd
+
+doxygen pseudo-doc.doxygen
+mv pseudo-doc/html pseudo-doc/doxygen
+
+%install
+pushd build
+%make_install
+
+mkdir -p %{buildroot}%{_mandir}/man1/
+install -Dpm0644 man/*.1 \
+        %{buildroot}%{_mandir}/man1/
+
+mkdir -p %{buildroot}%{_datadir}/pixmaps/
+install -Dpm0644 %{SOURCE1} \
+        %{buildroot}%{_datadir}/pixmaps/
+
+%check
+%ifnarch s390 s390x
+# TODO: with xorg dummy to test the package.
+# TODO: get remaining dependencies in
+# make check
+%endif
+
+%files
+%doc RELEASE-NOTES-%{version}
+%license LICENSE
+%{_bindir}/%{name}*
+%dir %{_sysconfdir}/%{name}/
+%config(noreplace) %{_sysconfdir}/%{name}/config
+%config(noreplace) %{_sysconfdir}/%{name}/config.keycodes
+%{_datadir}/xsessions/%{name}.desktop
+%{_datadir}/xsessions/%{name}-with-shmlog.desktop
+%{_mandir}/man*/%{name}*
+%{_datadir}/pixmaps/%{name}-logo.svg
+%{_datadir}/applications/%{name}.desktop
+%exclude %{_docdir}/%{name}/
+
+%files doc
+%license LICENSE
+%doc docs/*.{html,png}
+
+%files devel
+%license LICENSE
+%{_includedir}/%{name}/
+
+%files devel-doc
+%license LICENSE
+%doc pseudo-doc/doxygen/
+
+%changelog
+@CHANGELOG@
