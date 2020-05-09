@@ -2,13 +2,12 @@ DIST ?= fc32
 VERSION := $(shell cat version)
 REL := $(shell cat rel)
 
-FEDORA_SOURCES := https://src.fedoraproject.org/rpms/i3/raw/f$(subst fc,,$(DIST))/f/sources
 SRC_FILE := i3-$(VERSION).tar.bz2
 
 BUILDER_DIR ?= ../..
 SRC_DIR ?= qubes-src
 
-DISTFILES_MIRROR ?= https://i3wm.org/downloads/
+DISTFILES_MIRROR ?= https://github.com/Airblader/i3/releases/download/$(VERSION)/
 UNTRUSTED_SUFF := .UNTRUSTED
 FETCH_CMD := wget --no-use-server-timestamps -q -O
 
@@ -26,11 +25,3 @@ get-sources: $(SRC_FILE)
 .PHONY: verify-sources
 verify-sources:
 	@true
-
-# This target is generating content locally from upstream project
-# 'sources' file. Sanitization is done but it is encouraged to perform
-# update of component in non-sensitive environnements to prevent
-# any possible local destructions due to shell rendering
-.PHONY: update-sources
-update-sources:
-	@$(BUILDER_DIR)/$(SRC_DIR)/builder-rpm/scripts/generate-hashes-from-sources $(FEDORA_SOURCES)

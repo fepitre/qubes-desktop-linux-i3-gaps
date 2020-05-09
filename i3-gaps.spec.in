@@ -1,12 +1,14 @@
-Name:           i3
+%define base_name i3
+
+Name:           i3-gaps
 Version:        @VERSION@
 Release:        @REL@%{?dist}
 Epoch:          1000
-Summary:        Improved tiling window manager
+Summary:        i3 with more features
 License:        BSD
-URL:            https://i3wm.org
-Source0:        %{URL}/downloads/%{name}-%{version}.tar.bz2
-Source1:        %{name}-logo.svg
+URL:            https://github.com/Airblader/i3
+Source0:        %{base_name}-%{version}.tar.bz2
+Source1:        %{base_name}-logo.svg
 Patch0:         0001-Show-qubes-domain-in-configurable-colored-borders.patch
 
 BuildRequires:  gcc
@@ -40,26 +42,6 @@ BuildRequires:  pkgconfig(gobject-2.0)
 BuildRequires:  asciidoc >= 8.3.0
 BuildRequires:  xmlto >= 0.0.23
 
-# TODO: Testsuites
-# BuildRequires:  perl(ExtUtils::MakeMaker)
-#BuildRequires:  perl(strict)
-#BuildRequires:  perl(warnings)
-#BuildRequires:  perl(Pod::Usage)
-#BuildRequires:  perl(Cwd)
-#BuildRequires:  perl(File::Temp)
-#BuildRequires:  perl(Getopt::Long)
-#BuildRequires:  perl(POSIX)
-#BuildRequires:  perl(TAP::Harness)
-#BuildRequires:  perl(TAP::Parser)
-#BuildRequires:  perl(TAP::Parser::Aggregator)
-#BuildRequires:  perl(Time::HiRes)
-#BuildRequires:  perl(IO::Handle)
-#BuildRequires:  perl(AnyEvent::Util)
-#BuildRequires:  perl(AnyEvent::Handle)
-#BuildRequires:  perl(AnyEvent::I3)
-#BuildRequires:  perl(X11::XCB::Connection)
-#BuildRequires:  perl(Carp)
-
 BuildRequires:  perl-generators
 BuildRequires:  perl(Pod::Simple)
 %ifnarch s390 s390x
@@ -67,8 +49,6 @@ BuildRequires:  xorg-x11-drv-dummy
 %endif
 
 Requires:       qubes-desktop-linux-common
-Requires:       dmenu
-Requires:       dzen2
 Requires:       perl(:MODULE_COMPAT_%(eval "`perl -V:version`"; echo $version))
 %{!?rhel:Recommends:     rxvt-unicode}
 %{!?rhel:Recommends:     xorg-x11-apps}
@@ -80,6 +60,11 @@ Requires:       perl(AnyEvent::I3) >= 0.12
 Recommends:     dmenu
 Recommends:     i3status
 Recommends:     i3lock
+
+# Prevent both i3 and i3-gaps to be installed together
+Conflicts:      otherproviders(i3)
+Provides:       i3 = %{version}
+
 
 %description
 Key features of i3 are correct implementation of XrandR, horizontal and vertical
@@ -114,7 +99,7 @@ Requires:       %{name} = %{epoch}:%{version}-%{release}
 Doxygen generated documentations for %{name}.
 
 %prep
-%autosetup -p1
+%autosetup -p1 -n %{base_name}-%{version}
 
 # Drop /usr/bin/env lines in those which will be installed to %%_bindir.
 find . -maxdepth 1 -type f -name "i3*" -exec sed -i -e '1s;^#!/usr/bin/env perl;#!/usr/bin/perl;' {} + -print
@@ -142,26 +127,20 @@ mkdir -p %{buildroot}%{_datadir}/pixmaps/
 install -Dpm0644 %{SOURCE1} \
         %{buildroot}%{_datadir}/pixmaps/
 
-%check
-%ifnarch s390 s390x
-# TODO: with xorg dummy to test the package.
-# TODO: get remaining dependencies in
-# make check
-%endif
 
 %files
 %doc RELEASE-NOTES-%{version}
 %license LICENSE
-%{_bindir}/%{name}*
-%dir %{_sysconfdir}/%{name}/
-%config(noreplace) %{_sysconfdir}/%{name}/config
-%config(noreplace) %{_sysconfdir}/%{name}/config.keycodes
-%{_datadir}/xsessions/%{name}.desktop
-%{_datadir}/xsessions/%{name}-with-shmlog.desktop
-%{_mandir}/man*/%{name}*
-%{_datadir}/pixmaps/%{name}-logo.svg
-%{_datadir}/applications/%{name}.desktop
-%exclude %{_docdir}/%{name}/
+%{_bindir}/%{base_name}*
+%dir %{_sysconfdir}/%{base_name}/
+%config(noreplace) %{_sysconfdir}/%{base_name}/config
+%config(noreplace) %{_sysconfdir}/%{base_name}/config.keycodes
+%{_datadir}/xsessions/%{base_name}.desktop
+%{_datadir}/xsessions/%{base_name}-with-shmlog.desktop
+%{_mandir}/man*/%{base_name}*
+%{_datadir}/pixmaps/%{base_name}-logo.svg
+%{_datadir}/applications/%{base_name}.desktop
+%exclude %{_docdir}/%{base_name}/
 
 %files doc
 %license LICENSE
@@ -169,7 +148,7 @@ install -Dpm0644 %{SOURCE1} \
 
 %files devel
 %license LICENSE
-%{_includedir}/%{name}/
+%{_includedir}/%{base_name}/
 
 %files devel-doc
 %license LICENSE
